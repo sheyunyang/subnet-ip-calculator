@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>子网与IP计算工具 · 安全工具箱</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0b0f1a;--bg2:#101828;--card:rgba(255,255,255,.045);--brd:rgba(255,255,255,.09);
+--tx:#e5e9f2;--mut:#8b94a7;--cy:#22d3ee;--pu:#a78bfa;--gr:#34d399;--rd:#f43f5e;--am:#facc15}
+body{background:radial-gradient(1200px 600px at 80% -10%,rgba(167,139,250,.14),transparent),
+radial-gradient(900px 500px at -10% 20%,rgba(34,211,238,.12),transparent),var(--bg);
+color:var(--tx);font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+nav{position:sticky;top:0;z-index:9;backdrop-filter:blur(14px);background:rgba(11,15,26,.72);border-bottom:1px solid var(--brd)}
+nav .wrap{display:flex;align-items:center;gap:12px;padding-top:12px;padding-bottom:12px}
+.logo{font-weight:800;letter-spacing:.5px;font-size:15px}
+.logo b{background:linear-gradient(90deg,var(--cy),var(--pu));-webkit-background-clip:text;background-clip:text;color:transparent}
+.badge{font-size:12px;color:var(--cy);border:1px solid rgba(34,211,238,.35);padding:3px 10px;border-radius:99px;white-space:nowrap}
+.hero{padding:56px 0 28px}
+.hero h1{font-size:34px;line-height:1.25;margin:14px 0 12px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--cy),var(--pu));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{color:var(--mut);font-size:15px;line-height:1.85;max-width:860px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.tag{font-size:12px;color:var(--mut);background:var(--card);border:1px solid var(--brd);padding:4px 12px;border-radius:99px}
+.panel{background:linear-gradient(180deg,rgba(34,211,238,.06),rgba(167,139,250,.05)),var(--card);
+border:1px solid var(--brd);border-radius:16px;padding:22px 24px;margin:22px 0}
+.panel h2{font-size:17px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel h2::before{content:"";width:4px;height:16px;border-radius:2px;background:linear-gradient(180deg,var(--cy),var(--pu))}
+.scen{line-height:1.9;color:#c6cede;font-size:14.5px}
+.scen b{color:var(--cy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:20px;transition:.25s;backdrop-filter:blur(8px)}
+.card:hover{transform:translateY(-3px);border-color:rgba(34,211,238,.35);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.card h3{font-size:15.5px;margin-bottom:6px}
+.card .d{color:var(--mut);font-size:13px;margin-bottom:14px;line-height:1.7}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+input,select,textarea{background:rgba(0,0,0,.35);border:1px solid var(--brd);color:var(--tx);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;outline:none;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--cy)}
+textarea{min-height:96px;resize:vertical;line-height:1.6;font-family:Consolas,Menlo,monospace;font-size:12.5px}
+button{cursor:pointer;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;color:#04121a;background:linear-gradient(90deg,var(--cy),var(--gr));transition:.2s}
+button:hover{filter:brightness(1.12)}
+button.ghost{background:rgba(255,255,255,.08);color:var(--tx);border:1px solid var(--brd)}
+button.pu{background:linear-gradient(90deg,var(--pu),var(--cy));color:#0b0f1a}
+.out{background:rgba(0,0,0,.32);border:1px solid var(--brd);border-radius:10px;padding:12px;font-size:13px;line-height:1.75;word-break:break-all;max-height:340px;overflow:auto;white-space:pre-wrap;font-family:Consolas,Menlo,monospace}
+.out:empty{display:none}
+.bar{height:8px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin:8px 0}
+.barfill{height:100%;width:0;border-radius:99px;transition:.35s;background:linear-gradient(90deg,var(--cy),var(--gr))}
+.klist{list-style:none;display:grid;gap:8px}
+.klist li{background:rgba(0,0,0,.25);border:1px solid var(--brd);border-radius:10px;padding:10px 14px;font-size:13.5px;line-height:1.65}
+.klist li::before{content:"▸ ";color:var(--cy)}
+.klist li.warn::before{content:"⚠ ";color:var(--am)}
+.klist li.bad::before{content:"✕ ";color:var(--rd)}
+.klist li.ok::before{content:"✓ ";color:var(--gr)}
+.klist li label{display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+.klist input[type=checkbox]{width:15px;height:15px;margin-top:3px;accent-color:var(--cy)}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{color:var(--cy);text-align:left;padding:7px 9px;border-bottom:1px solid var(--brd);font-weight:600}
+.tbl td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05);color:#c6cede}
+.tbl tr:hover td{background:rgba(255,255,255,.03)}
+.scorebig{font-size:44px;font-weight:800;background:linear-gradient(90deg,var(--cy),var(--pu));-webkit-background-clip:text;background-clip:text;color:transparent}
+footer{border-top:1px solid var(--brd);margin-top:40px;padding:26px 0 10px;color:var(--mut);font-size:12.5px;line-height:1.8}
+footer b{color:var(--am)}
+.mono{font-family:Consolas,Menlo,monospace;font-size:12px}
+.pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:99px;margin:2px 3px 2px 0;border:1px solid var(--brd)}
+@media(max-width:640px){.hero h1{font-size:26px}.grid{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+<div class="logo">🛡️ <b>SEC TOOLKIT</b></div>
+<span class="badge">网络分析</span>
+</div></nav>
+<div class="wrap">
+<header class="hero">
+<h1>🌐 <em>子网与IP计算工具</em></h1>
+<p class="lead">子网划分、IP 合法性校验、公网私网判别、CIDR 包含关系核查，网络规划与防火墙白名单审核必备。</p>
+<div class="tags"><span class="tag">网络分析</span><span class="tag">子网计算器</span><span class="tag">IP 信息分析</span><span class="tag">CIDR 包含检查</span></div>
+</header>
+
+<section class="panel">
+<h2>📌 实际应用场景</h2>
+<div class="scen"><b>适用角色：</b>网络管理员、运维工程师、安全分析师<br><b>解决痛点：</b>子网划分、IP 合法性校验、公网私网判别、CIDR 包含关系核查，网络规划与防火墙白名单审核必备。<br><b>使用方式：</b>下方功能模块即开即用，输入你的数据即可得到结果；页面可离线保存与转发。</div>
+</section>
+
+<section class="panel">
+<h2>🧰 功能工具</h2>
+<div class="grid"><div class="card"><h3>🕸️ 子网计算器</h3><p class="d">根据 IP 与掩码计算网络地址、广播地址、可用主机范围与数量。</p><div class="row"><input id="sn_ip" placeholder="IP，如 192.168.1.10" style="flex:2"><input id="sn_m" placeholder="掩码位数，如 24" style="flex:1"><button onclick="f_sn()">计算</button></div>
+<div id="sn_out" class="out"></div></div>
+<div class="card"><h3>📍 IP 信息分析</h3><p class="d">校验 IP 合法性，判断公网/私网/保留地址并显示二进制与地理位置类型。</p><input id="ii_in" placeholder="输入 IPv4 地址" oninput="f_ii()">
+<div id="ii_out" class="out"></div></div>
+<div class="card"><h3>✔️ CIDR 包含检查</h3><p class="d">判断某 IP 是否属于指定 CIDR 网段，用于白名单/访问控制规则核对。</p><div class="row"><input id="cc_ip" placeholder="要检查的 IP" style="flex:1"><input id="cc_c" placeholder="CIDR，如 10.0.0.0/8" style="flex:1"><button onclick="f_cc()">检查</button></div>
+<div id="cc_out" class="out"></div></div></div>
+</section>
+
+<section class="panel">
+<h2>💡 使用建议与安全提示</h2>
+<ul class="klist"><li><b>场景要点：</b>子网划分、IP 合法性校验、公网私网判别、CIDR 包含关系核查，网络规划与防火墙白名单审核必备。</li><li><b>数据不出本机</b>：所有计算都在你的浏览器内完成，不联网、不上传，可放心处理敏感数据。</li><li><b>最小权限</b>：使用任何安全工具时使用够用即可的权限，避免工具本身成为风险源。</li></ul>
+</section>
+
+<footer>
+<div>⚖️ <b>合法合规声明</b>：本工具仅供安全学习、防御加固与授权测试使用。任何未经授权对他人系统的访问、扫描或测试均属违法行为，使用者需自行承担全部责任。</div>
+<div>生成日期：2026-10-06 ｜ 单文件离线应用，所有计算均在本地浏览器完成，不会上传任何数据。</div>
+</footer>
+</div>
+<script>
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function copyId(id){var el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.value||el.textContent);}}
+function ip2n(ip){return ip.split('.').reduce((a,b)=>(a<<8)+ +b,0)>>>0}
+function n2ip(n){return[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.')}
+function f_sn(){var ip=document.getElementById('sn_ip').value.trim();var m=+document.getElementById('sn_m').value;var o=document.getElementById('sn_out');
+if(!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)||!(m>=0&&m<=32)){o.textContent="输入不合法";return}
+var n=ip2n(ip);var mask=m===0?0:(~0<<(32-m))>>>0;var net=n&mask;var bcast=net|(~mask>>>0);
+var hosts=m>=31?(m===31?2:1):Math.pow(2,32-m)-2;
+o.textContent="网络地址："+n2ip(net)+" /"+m+"\n广播地址："+n2ip(bcast)+"\n可用主机范围："+n2ip(net+1)+" ~ "+n2ip(bcast-1)+"\n可用主机数："+hosts+"\n掩码："+n2ip(mask)+"\nIP 二进制："+n.toString(2).padStart(32,'0').replace(/(.{8})/g,'$1.');}
+function f_ii(){var v=document.getElementById('ii_in').value.trim();var o=document.getElementById('ii_out');
+if(!/^(\d{1,3}\.){3}\d{1,3}$/.test(v)){o.textContent="";if(v)o.textContent="不是合法的 IPv4 格式";return}
+var p=v.split('.').map(Number);if(p.some(x=>x>255)){o.textContent="❌ 每段必须在 0-255 之间";return}
+var n=p[0];var cls=n<128?"A 类":n<192?"B 类":n<224?"C 类":n<240?"D 类（组播）":"E 类（保留）";
+var type="公网地址";
+if(n===10||n===127||(n===172&&p[1]>=16&&p[1]<=31)||(n===192&&p[1]===168)||(n===169&&p[1]===254))type="私有/特殊地址";
+if(n===127)type="回环地址（localhost）";if(n===169&&p[1]===254)type="链路本地（APIPA，可能未获取到 DHCP）";
+var bin=p.map(x=>x.toString(2).padStart(8,'0')).join('.');
+o.textContent="✅ 合法 IPv4\n分类："+cls+"\n性质："+type+"\n二进制："+bin+"\n"+(n===10||n===192||(n===172&&p[1]>=16&&p[1]<=31)?"ℹ️ 属于 RFC1918 私网地址，无法直接从公网访问":"ℹ️ 公网地址，暴露端口将被全网扫描");}
+function f_cc(){function ip2n(ip){return ip.split('.').reduce((a,b)=>(a<<8)+ +b,0)>>>0}
+var ip=document.getElementById('cc_ip').value.trim();var c=document.getElementById('cc_c').value.trim();var o=document.getElementById('cc_out');
+var m=c.match(/^(\d{1,3}(?:\.\d{1,3}){3})\/(\d{1,2})$/);
+if(!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)||!m){o.textContent="输入格式不合法（示例：IP 10.1.2.3，CIDR 10.0.0.0/8）";return}
+var n=ip2n(ip),base=ip2n(m[1]),bits=+m[2];if(bits>32){o.textContent="掩码位数不合法";return}
+var mask=bits===0?0:(~0<<(32-bits))>>>0;
+o.textContent=((n&mask)===(base&mask))?"✅ "+ip+" 在 "+c+" 范围内":"❌ "+ip+" 不在 "+c+" 范围内";}
+</script>
+</body>
+</html>
